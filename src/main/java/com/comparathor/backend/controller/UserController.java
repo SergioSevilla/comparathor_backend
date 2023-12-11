@@ -7,7 +7,7 @@ import com.comparathor.backend.service.RolService;
 import com.comparathor.backend.service.UserInfoDetails;
 import com.comparathor.backend.service.UserInfoService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import jakarta.websocket.server.PathParam;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -21,6 +21,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1")
+@Tag(name = "Servicios de USUARIO", description = "Servicios para gestionar usuarios y autenticación")
 public class UserController {
 
     @Autowired
@@ -38,6 +39,7 @@ public class UserController {
 
     // Da de alta un usuario con el rol "USER"
     @PostMapping("/user/create")
+    @Tag(name = "Create", description = "Esto para crear")
     public String addNewUser(@RequestBody Usuario usuario) {
         usuario.setRol(rolService.getRolById(1));
         return service.addUser(usuario);
@@ -103,6 +105,16 @@ public class UserController {
                 .getPrincipal();
         return service.changePassword(user.getUsername(),usuario.getPassword());
     }
+
+    //devuelve si el email existe o no
+    @GetMapping("/user/checkEmail")
+    @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
+    @SecurityRequirement(name="Bearer Authentication")
+    public String checkEmail(@RequestParam String email) {
+
+        return service.checkEmail(email);
+    }
+
 
     //mensaje de bienvenida
     @GetMapping("/user/welcome")

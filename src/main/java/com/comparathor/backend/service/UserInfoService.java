@@ -64,7 +64,8 @@ public class UserInfoService implements UserDetailsService {
             Usuario usuarioOld = oUsuario.get();
             usuarioOld.setDireccion(usuario.getDireccion());
             usuarioOld.setNombre(usuario.getNombre());
-            repository.save(usuario);
+            usuarioOld.setUpdated_at(new Date(System.currentTimeMillis()));
+            repository.save(usuarioOld);
             return "User Update Successfully";
         }
         else {
@@ -114,7 +115,20 @@ public class UserInfoService implements UserDetailsService {
         }
         oldUsuario.setDireccion(usuario.getDireccion());
         oldUsuario.setNombre(usuario.getNombre());
+        oldUsuario.setUpdated_at(new Date(System.currentTimeMillis()));
         repository.save(oldUsuario);
-        return usuario;
+        oldUsuario.setPassword("");
+        return oldUsuario;
+    }
+
+    public String checkEmail(String email)
+    {
+        Optional<Usuario> oUsuario = repository.findByEmail(email);
+        if (oUsuario.isPresent()) {
+            return "Existe";
+        }
+        else {
+            return "No existe";
+        }
     }
 }
