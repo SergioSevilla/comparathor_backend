@@ -6,6 +6,8 @@ import com.comparathor.backend.service.JwtService;
 import com.comparathor.backend.service.RolService;
 import com.comparathor.backend.service.UserInfoDetails;
 import com.comparathor.backend.service.UserInfoService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.websocket.server.PathParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -15,8 +17,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/v1")
 public class UserController {
 
     @Autowired
@@ -32,30 +36,56 @@ public class UserController {
     private AuthenticationManager authenticationManager;
 
 
-   @PostMapping("/addNewUser")
-   public String addNewUser(@RequestBody Usuario usuario) {
-       usuario.setRol(rolService.getRolById(1));
-       return service.addUser(usuario);
-   }
-
-    @GetMapping("/user/userProfile")
-    @PreAuthorize("hasAuthority('USER')")
-    public String userProfile() {
-        UserInfoDetails user = (UserInfoDetails)SecurityContextHolder.getContext().getAuthentication()
-                .getPrincipal();
-       return "Hello "+user.getUsername();
+    // Da de alta un usuario con el rol "USER"
+    @PostMapping("/user/create")
+    public String addNewUser(@RequestBody Usuario usuario) {
+        usuario.setRol(rolService.getRolById(1));
+        return service.addUser(usuario);
     }
 
-    @GetMapping("/admin/adminProfile")
+
+    // Devuelve información del usuario que ejecuta el REST
+    @GetMapping("/user")
+    @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
+    @SecurityRequirement(name="Bearer Authentication")
+    public List<Usuario> getUser() {
+        UserInfoDetails user = (UserInfoDetails)SecurityContextHolder.getContext().getAuthentication()
+                .getPrincipal();
+        return service.getUsers(user);
+    }
+
+    // Modifica información del usuario que ejecuta el REST
+    @PutMapping("/user")
+    @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
+    @SecurityRequirement(name="Bearer Authentication")
+    public String ModifyUser(@RequestBody Usuario usuario) {
+        UserInfoDetails user = (UserInfoDetails)SecurityContextHolder.getContext().getAuthentication()
+                .getPrincipal();
+        return service.modifyUser(user.getUsername(), usuario);
+
+    }
+
+    // Devuelve información del usuario ID
+    @GetMapping("/user/{id}")
     @PreAuthorize("hasAuthority('ADMIN')")
-    public String adminProfile() {
-        UserInfoDetails user = (UserInfoDetails)SecurityContextHolder.getContext().getAuthentication()
-                .getPrincipal();
-        return "Hello "+user.getUsername();
+    @SecurityRequirement(name="Bearer Authentication")
+    public Usuario getUser(@PathVariable("id") int id) {
+
+        return service.getUser(id);
     }
 
-    @PostMapping("/generateToken")
-    public String changePassword(@RequestBody AuthRequest authRequest) {
+    // Modifica información del usuario ID
+    @PutMapping("/user/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @SecurityRequirement(name="Bearer Authentication")
+    public Usuario ModifyUserById(@PathVariable("id") int id, @RequestBody Usuario usuario) {
+
+        return service.modifyUser(id, usuario);
+    }
+
+    // Devuelve JWT si el usuario y contraseña es correcta
+    @PostMapping("/user/login")
+    public String login(@RequestBody AuthRequest authRequest) {
         Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(authRequest.getEmail(), authRequest.getPassword()));
         if (authentication.isAuthenticated()) {
             return jwtService.generateToken(authRequest.getEmail());
@@ -64,20 +94,21 @@ public class UserController {
         }
     }
 
+    // Cambia contraseña del usuario logado
     @PutMapping("/user/changePassword")
-    @PreAuthorize("hasAuthority('USER')")
+    @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
+    @SecurityRequirement(name="Bearer Authentication")
     public String changePass(@RequestBody Usuario usuario) {
         UserInfoDetails user = (UserInfoDetails)SecurityContextHolder.getContext().getAuthentication()
                 .getPrincipal();
         return service.changePassword(user.getUsername(),usuario.getPassword());
     }
 
-    @PutMapping("/user/changeUser")
-    @PreAuthorize("hasAuthority('USER')")
-    public String changeUser(@RequestBody Usuario usuario) {
-        UserInfoDetails user = (UserInfoDetails)SecurityContextHolder.getContext().getAuthentication()
-                .getPrincipal();
-        return service.changeUser(user.getUsername(),usuario);
+    //mensaje de bienvenida
+    @GetMapping("/user/welcome")
+    public String welcomeMessage() {
+        return "Welcome Message!";
     }
+
 
 }
