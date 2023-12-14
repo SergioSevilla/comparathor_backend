@@ -17,7 +17,7 @@ public class Usuario {
     private String direccion;
 
     @ManyToOne ( fetch = FetchType.EAGER, optional = false)
-    @JoinColumn(name = "id_rol", referencedColumnName = "id", nullable = false, insertable = true, updatable = true)
+    @JoinColumn(name = "rolId", referencedColumnName = "id", nullable = false, insertable = true, updatable = true)
     @JsonIgnore
     private Rol rol;
 

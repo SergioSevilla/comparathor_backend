@@ -23,17 +23,12 @@ public class OpenApiConfig {
 
 
 
-    @Value("${comparathor.openapi.dev-url}")
-    private String devUrl;
-
     @Value("${comparathor.openapi.prod-url}")
     private String prodUrl;
 
     @Bean
     public OpenAPI myOpenAPI() {
-        Server devServer = new Server();
-        devServer.setUrl(devUrl);
-        devServer.setDescription("Servidor de desarrollo de COMPARATHOR");
+
 
         Server prodServer = new Server();
         prodServer.setUrl(prodUrl);
@@ -52,6 +47,6 @@ public class OpenApiConfig {
                 .description("Descripción")
                 .license(mitLicense);
 
-        return new OpenAPI().info(info).servers(List.of(devServer, prodServer));
+        return new OpenAPI().info(info).servers(List.of(prodServer));
     }
 }

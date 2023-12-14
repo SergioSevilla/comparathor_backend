@@ -39,7 +39,6 @@ public class UserController {
 
     // Da de alta un usuario con el rol "USER"
     @PostMapping("/user/create")
-    @Tag(name = "Create", description = "Esto para crear")
     public String addNewUser(@RequestBody Usuario usuario) {
         usuario.setRol(rolService.getRolById(1));
         return service.addUser(usuario);
