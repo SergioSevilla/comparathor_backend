@@ -20,7 +20,7 @@ public class EstadoController {
     @Autowired
     private EstadoService estadoService;
 
-    @GetMapping("/status")
+    @GetMapping("/statuses")
     @SecurityRequirement(name="Bearer Authentication")
     @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
     public List<Estado> getEstado() {
@@ -28,7 +28,7 @@ public class EstadoController {
         return estadoService.getAllEstados();
     }
 
-    @GetMapping("/status/{id}")
+    @GetMapping("/statuses/{id}")
     @SecurityRequirement(name="Bearer Authentication")
     @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
     public Estado getCategoria(@PathVariable("id") int id) {

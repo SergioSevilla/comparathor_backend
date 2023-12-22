@@ -10,15 +10,31 @@ import com.comparathor.backend.repository.EstadoRepository;
 import com.comparathor.backend.repository.ProductoRepository;
 import com.comparathor.backend.repository.UserInfoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
 @Service
 public class ProductoService {
+
+    @Value("${picture.path}")
+    private String uploadDir;
 
     @Autowired
     private final ProductoRepository repository;
@@ -82,8 +98,6 @@ public class ProductoService {
             Optional<Categoria> categoriaOpt = repositoryCategoria.findById(categoriaId);
             if (categoriaOpt.isPresent())
             {
-                Estado estado = new Estado();
-
                 producto.setCategoria(categoriaOpt.get());
                 producto.setEstado(repositoryEstado.findById(1).get());
                 producto.setUsuario(usuarioOpt.get());
@@ -94,7 +108,7 @@ public class ProductoService {
             }
             else
             {
-                throw new NoSuchElementFoundException("El usuario no existe en el sistema");
+                throw new NoSuchElementFoundException("La categoría no existe en el sistema");
             }
 
         }
@@ -195,5 +209,119 @@ public class ProductoService {
         {
             throw new NoSuchElementFoundException("El usuario no existe en el sistema");
         }
+    }
+
+    public Producto saveImage(MultipartFile multipartFile, int id, UserInfoDetails user)
+    {
+        Optional<Producto> productoOpt = repository.findById(id);
+        if (productoOpt.isPresent())
+        {
+            Producto producto = productoOpt.get();
+            if ((producto.getObjectUsuario().getId()==repositoryUser.findByEmail(user.getUsername()).get().getId()) &&
+                    (producto.getEstado()==1))
+            {
+                Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+                String fileName = producto.getObjectUsuario().getId()+"_"+id+"_"+timestamp.getTime();
+                saveFile(multipartFile,fileName);
+                producto.setFoto(fileName);
+                this.repository.save(producto);
+                return producto;
+
+            }
+            else
+                throw new NoSuchElementFoundException("No se puede guardar la imagen");
+        }
+        else
+            throw new NoSuchElementFoundException("El prodcuto no existe en el sistema");
+    }
+
+    private void saveFile(MultipartFile multipartFile, String fileName)  {
+        Path uploadPath = Paths.get(this.uploadDir);
+        try {
+            if (!Files.exists(uploadPath)) {
+
+                    Files.createDirectories(uploadPath);
+
+            }
+            InputStream inputStream = multipartFile.getInputStream();
+            Path filePath = uploadPath.resolve(fileName);
+            Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public ResponseEntity<?> getImage(int id, UserInfoDetails user) {
+        String fileName = "";
+        Optional<Producto> productoOpt = repository.findById(id);
+        if (productoOpt.isPresent())
+        {
+            Producto producto = productoOpt.get();
+            if ((producto.getObjectUsuario().getId()==repositoryUser.findByEmail(user.getUsername()).get().getId()) ||
+                    (user.getAuthorities().contains(new SimpleGrantedAuthority("ADMIN"))))
+            {
+                if (producto.getFoto()!=null)
+                {
+                    fileName = productoOpt.get().getFoto();
+                    File fi = new File(this.uploadDir+fileName);
+                    byte[] image;
+                    try {
+                        image = Files.readAllBytes(fi.toPath());
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+
+                    return ResponseEntity.status(HttpStatus.OK)
+                            .contentType(MediaType.valueOf("image/png"))
+                            .body(image);
+                }
+                else
+                    throw new NoSuchElementFoundException("El producto no tiene foto");
+            }
+            else
+                throw new NoSuchElementFoundException("Sin permisos");
+
+        }
+        else
+            throw new NoSuchElementFoundException("El producto o la foto no existe en el sistema");
+
+
+
+
+
+    }
+
+    public Producto deletePicture(int id, UserInfoDetails user)
+    {
+        Optional<Producto> productoOpt = repository.findById(id);
+        if (productoOpt.isPresent())
+        {
+            Producto producto = productoOpt.get();
+            if (producto.getFoto() == null)
+            {
+                return producto;
+            }
+            else {
+                if ((producto.getObjectUsuario().getId()==repositoryUser.findByEmail(user.getUsername()).get().getId()) ||
+                        (user.getAuthorities().contains(new SimpleGrantedAuthority("ADMIN"))))
+                {
+                    deleleteImage(producto.getFoto());
+                    producto.setFoto(null);
+                    repository.save(producto);
+                    return producto;
+                }
+                else {
+                    throw new NoSuchElementFoundException("Sin permisos");
+                }
+            }
+        }
+        else
+            throw new NoSuchElementFoundException("El prodcuto no existe en el sistema");
+    }
+
+    private void deleleteImage(String foto) {
+
+        File fi = new File(this.uploadDir+foto);
+        fi.delete();
     }
 }

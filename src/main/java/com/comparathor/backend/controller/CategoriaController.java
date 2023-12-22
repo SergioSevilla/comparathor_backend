@@ -22,7 +22,7 @@ public class CategoriaController {
     private CategoriaService categoriaService;
 
 
-    @GetMapping("/category")
+    @GetMapping("/categories")
     @SecurityRequirement(name="Bearer Authentication")
     @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
     public List<Categoria> getCategorias(@RequestParam(required = false) Long parentId) {
@@ -32,7 +32,7 @@ public class CategoriaController {
 
 
 
-    @GetMapping("/category/{id}")
+    @GetMapping("/categories/{id}")
     @SecurityRequirement(name="Bearer Authentication")
     @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
     public Categoria getCategoria(@PathVariable("id") int id) {
@@ -40,7 +40,7 @@ public class CategoriaController {
         return categoriaService.getCategoria(id);
     }
 
-    @PostMapping("/category")
+    @PostMapping("/categories")
     @SecurityRequirement(name="Bearer Authentication")
     @PreAuthorize("hasAuthority('ADMIN')")
     public Categoria addNewCategory(@RequestBody Categoria categoria) {
@@ -48,7 +48,7 @@ public class CategoriaController {
         return categoriaService.addCategory(categoria);
     }
 
-    @PutMapping("/category/{id}")
+    @PutMapping("/categories/{id}")
     @SecurityRequirement(name="Bearer Authentication")
     @PreAuthorize("hasAuthority('ADMIN')")
     public Categoria ModifyCategoria(@PathVariable("id") int id, @RequestBody Categoria categoria) {

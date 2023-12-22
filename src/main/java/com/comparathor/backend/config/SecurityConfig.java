@@ -37,11 +37,17 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http.csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(auth -> auth.requestMatchers("api/v1/user/create", "api/v1/user/login", "api/v1/user/welcome", "/swagger-ui/**","/v3/api-docs/**").permitAll()
-                        .requestMatchers("api/v1/user/**").authenticated()
-                        .requestMatchers("api/v1/category/**").authenticated()
-                        .requestMatchers("api/v1/status/**").authenticated()
-                        .requestMatchers("api/v1/item/**").authenticated()
+                .authorizeHttpRequests(auth -> auth.requestMatchers("api/v1/users/create", "api/v1/users/login", "api/v1/users/welcome", "/swagger-ui/**","/v3/api-docs/**").permitAll()
+                        .requestMatchers("api/v1/users/**").authenticated()
+                        .requestMatchers("api/v1/categories/**").authenticated()
+                        .requestMatchers("api/v1/statuses/**").authenticated()
+                        .requestMatchers("api/v1/items/**").authenticated()
+                        .requestMatchers("api/v1/comments/**").authenticated()
+                        .requestMatchers("api/v1/scores/**").authenticated()
+                        .requestMatchers("api/v1/properties/**").authenticated()
+                        .requestMatchers("api/v1/suppliers/**").authenticated()
+                        .requestMatchers("api/v1/prices/**").authenticated()
+                        .requestMatchers("api/v1/values/**").authenticated()
 
                 )
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

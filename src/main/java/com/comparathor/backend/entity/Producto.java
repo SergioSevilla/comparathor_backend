@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.util.Date;
+import java.util.List;
 
 @Entity(name = "Producto")
 @Table(name = "Producto", schema = "comparathor")
@@ -24,6 +25,8 @@ public class Producto {
 
     private String nombre;
 
+    private String foto;
+
     @ManyToOne (fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "estadoId", referencedColumnName = "id", nullable = false, insertable = true, updatable = true)
     private Estado estado;
@@ -35,6 +38,17 @@ public class Producto {
     @ManyToOne (fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "CategoriaId", referencedColumnName = "id", nullable = false, insertable = true, updatable = true)
     private Categoria categoria;
+
+    @OneToMany(mappedBy = "producto")
+    private List<AtributoValor> atributos;
+
+    public List<AtributoValor> getAtributos() {
+        return atributos;
+    }
+
+    public void setAtributos(List<AtributoValor> atributos) {
+        this.atributos = atributos;
+    }
 
     public Long getId() {
         return id;
@@ -111,4 +125,15 @@ public class Producto {
     {
         return this.estado;
     }
+
+    @JsonIgnore
+    public String getFoto() {
+        return foto;
+    }
+
+    public void setFoto(String foto) {
+        this.foto = foto;
+    }
+
+
 }

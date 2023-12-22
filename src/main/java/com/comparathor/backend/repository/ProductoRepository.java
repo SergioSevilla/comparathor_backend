@@ -1,6 +1,5 @@
 package com.comparathor.backend.repository;
 
-import com.comparathor.backend.entity.Categoria;
 import com.comparathor.backend.entity.Estado;
 import com.comparathor.backend.entity.Producto;
 import com.comparathor.backend.entity.Usuario;
@@ -13,7 +12,7 @@ import java.util.Optional;
 @Repository
 public interface ProductoRepository extends JpaRepository<Producto, Integer> {
 
-    Optional<Categoria> findById(Long id);
+    Optional<Producto> findById(Long id);
 
     List<Producto> findAll();
 

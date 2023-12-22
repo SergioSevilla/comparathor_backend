@@ -38,7 +38,7 @@ public class UserController {
 
 
     // Da de alta un usuario con el rol "USER"
-    @PostMapping("/user/create")
+    @PostMapping("/users/create")
     public String addNewUser(@RequestBody Usuario usuario) {
         usuario.setRol(rolService.getRolById(1));
         return service.addUser(usuario);
@@ -46,7 +46,7 @@ public class UserController {
 
 
     // Devuelve información del usuario que ejecuta el REST
-    @GetMapping("/user")
+    @GetMapping("/users")
     @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
     @SecurityRequirement(name="Bearer Authentication")
     public List<Usuario> getUser() {
@@ -56,7 +56,7 @@ public class UserController {
     }
 
     // Modifica información del usuario que ejecuta el REST
-    @PutMapping("/user")
+    @PutMapping("/users")
     @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
     @SecurityRequirement(name="Bearer Authentication")
     public String ModifyUser(@RequestBody Usuario usuario) {
@@ -67,7 +67,7 @@ public class UserController {
     }
 
     // Devuelve información del usuario ID
-    @GetMapping("/user/{id}")
+    @GetMapping("/users/{id}")
     @PreAuthorize("hasAuthority('ADMIN')")
     @SecurityRequirement(name="Bearer Authentication")
     public Usuario getUser(@PathVariable("id") int id) {
@@ -76,7 +76,7 @@ public class UserController {
     }
 
     // Modifica información del usuario ID
-    @PutMapping("/user/{id}")
+    @PutMapping("/users/{id}")
     @PreAuthorize("hasAuthority('ADMIN')")
     @SecurityRequirement(name="Bearer Authentication")
     public Usuario ModifyUserById(@PathVariable("id") int id, @RequestBody Usuario usuario) {
@@ -85,7 +85,7 @@ public class UserController {
     }
 
     // Devuelve JWT si el usuario y contraseña es correcta
-    @PostMapping("/user/login")
+    @PostMapping("/users/login")
     public String login(@RequestBody AuthRequest authRequest) {
         Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(authRequest.getEmail(), authRequest.getPassword()));
         if (authentication.isAuthenticated()) {
@@ -96,7 +96,7 @@ public class UserController {
     }
 
     // Cambia contraseña del usuario logado
-    @PutMapping("/user/changePassword")
+    @PutMapping("/users/changePassword")
     @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
     @SecurityRequirement(name="Bearer Authentication")
     public String changePass(@RequestBody Usuario usuario) {
@@ -106,7 +106,7 @@ public class UserController {
     }
 
     //devuelve si el email existe o no
-    @GetMapping("/user/checkEmail")
+    @GetMapping("/users/checkEmail")
     @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
     @SecurityRequirement(name="Bearer Authentication")
     public String checkEmail(@RequestParam String email) {
@@ -116,7 +116,7 @@ public class UserController {
 
 
     //mensaje de bienvenida
-    @GetMapping("/user/welcome")
+    @GetMapping("/users/welcome")
     public String welcomeMessage() {
         return "Welcome Message!";
     }
