@@ -7,6 +7,7 @@ import com.comparathor.backend.service.UserInfoDetails;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -25,16 +26,18 @@ public class AtributoController {
     @SecurityRequirement(name="Bearer Authentication")
     @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
     public List<Atributo> getProperties() {
-
-        return atributoService.getAtributos();
+        UserInfoDetails user = (UserInfoDetails) SecurityContextHolder.getContext().getAuthentication()
+                .getPrincipal();
+        return atributoService.getAtributos(user);
     }
 
     @GetMapping("/categories/{id}/properties")
     @SecurityRequirement(name="Bearer Authentication")
     @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
     public List<Atributo> getCategoryProperties(@PathVariable("id") int id) {
-
-        return atributoService.getAtributosCategoria(id);
+        UserInfoDetails user = (UserInfoDetails) SecurityContextHolder.getContext().getAuthentication()
+                .getPrincipal();
+        return atributoService.getAtributosCategoria(id,user);
     }
 
     @GetMapping("/items/{id}/properties")
@@ -49,6 +52,7 @@ public class AtributoController {
     @PostMapping("/categories/{id}/properties")
     @SecurityRequirement(name="Bearer Authentication")
     @PreAuthorize("hasAuthority('ADMIN')")
+    @ResponseStatus( HttpStatus.CREATED)
     public Atributo addCategoryProperty(@PathVariable("id") int id, @RequestBody Atributo atributo) {
 
         return atributoService.addPropiedadCategoria(id,atributo);
@@ -60,5 +64,13 @@ public class AtributoController {
     public Atributo modifyCategoryProperty(@PathVariable("id") int id, @RequestBody Atributo atributo) {
 
         return atributoService.modifyPropiedadCategoria(id,atributo);
+    }
+
+    @DeleteMapping("/properties/{id}")
+    @SecurityRequirement(name="Bearer Authentication")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public Atributo deleteProperty(@PathVariable("id") int id) {
+
+        return atributoService.deleteAtributo(id);
     }
 }

@@ -7,6 +7,7 @@ import com.comparathor.backend.service.UserInfoDetails;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -25,7 +26,9 @@ public class PuntuacionController {
     @SecurityRequirement(name="Bearer Authentication")
     @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
     public List<Puntuacion> getPuntuacion(@PathVariable("id") int id ) {
-        return puntuacionService.getScoresItem(id);
+        UserInfoDetails user = (UserInfoDetails) SecurityContextHolder.getContext().getAuthentication()
+                .getPrincipal();
+        return puntuacionService.getScoresItem(id, user);
     }
 
     @PutMapping("/scores/{id}")
@@ -40,10 +43,21 @@ public class PuntuacionController {
     @PostMapping("/items/{id}/scores")
     @SecurityRequirement(name="Bearer Authentication")
     @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
+    @ResponseStatus( HttpStatus.CREATED)
     public Puntuacion addPuntuacion(@PathVariable("id") int id, @RequestBody Puntuacion puntuacion ) {
         UserInfoDetails user = (UserInfoDetails) SecurityContextHolder.getContext().getAuthentication()
                 .getPrincipal();
         return puntuacionService.addPuntuacion(id,puntuacion,user);
+
+    }
+
+    @DeleteMapping("/scores/{id}")
+    @SecurityRequirement(name="Bearer Authentication")
+    @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
+    public Puntuacion deletePuntuacion(@PathVariable("id") int id ) {
+        UserInfoDetails user = (UserInfoDetails) SecurityContextHolder.getContext().getAuthentication()
+                .getPrincipal();
+        return puntuacionService.deletePuntuacion(id,user);
 
     }
 }

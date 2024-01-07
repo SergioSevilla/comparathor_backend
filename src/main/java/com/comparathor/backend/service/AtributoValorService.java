@@ -45,7 +45,16 @@ public class AtributoValorService {
     }
 
     public List<AtributoValor> getAtributoValor(int id, UserInfoDetails user) {
-        Optional<Producto> productoOptional = repositoryProducto.findById(id);
+        Optional<Producto> productoOptional;
+        if (user.getAuthorities().contains(new SimpleGrantedAuthority("ADMIN")))
+        {
+            productoOptional= repositoryProducto.findById(id);
+        }
+        else
+        {
+            productoOptional= repositoryProducto.findByIdAndDeletedAtNull(id);
+        }
+
         if (productoOptional.isPresent()) {
             Producto producto = productoOptional.get();
             if (user.getAuthorities().contains(new SimpleGrantedAuthority("ADMIN")))
@@ -70,8 +79,8 @@ public class AtributoValorService {
     public AtributoValor addAtributoValor(UserInfoDetails user, AtributoValor atributoValor) {
         if (checkAtributoValor(atributoValor))
         {
-            Producto producto = repositoryProducto.findById(atributoValor.getProductoObject().getId()).get();
-            Atributo atributo = repositoryAtributo.findById(atributoValor.getAtributoObject().getId()).get();
+            Producto producto = repositoryProducto.findByIdAndDeletedAtNull(Math.toIntExact(atributoValor.getProductoObject().getId())).get();
+            Atributo atributo = repositoryAtributo.findByIdAndDeletedAtNull(Math.toIntExact(atributoValor.getAtributoObject().getId())).get();
             if (user.getAuthorities().contains(new SimpleGrantedAuthority("ADMIN")))
             {
                 AtributoValor atributoValorToAdd = new AtributoValor();
@@ -104,8 +113,8 @@ public class AtributoValorService {
     }
 
     private boolean checkAtributoValor(AtributoValor atributoValor) {
-        Optional<Producto> productoOptional = repositoryProducto.findById(atributoValor.getProductoObject().getId());
-        Optional<Atributo> atributoOptional = repositoryAtributo.findById(atributoValor.getAtributoObject().getId());
+        Optional<Producto> productoOptional = repositoryProducto.findByIdAndDeletedAtNull(Math.toIntExact(atributoValor.getProductoObject().getId()));
+        Optional<Atributo> atributoOptional = repositoryAtributo.findByIdAndDeletedAtNull(Math.toIntExact(atributoValor.getAtributoObject().getId()));
         if (!(productoOptional.isPresent()))
         {
             throw  new NoSuchElementFoundException("El producto no existe en el sistema");
@@ -127,10 +136,10 @@ public class AtributoValorService {
 
     private List<Categoria> getAllFamilyCategories(Long id) {
         List<Categoria> categorias = new ArrayList<>();
-        Categoria categoria = repositoryCategoria.findById(id).get();
+        Categoria categoria = repositoryCategoria.findByIdAndDeletedAtNull(Math.toIntExact(id)).get();
         categorias.add(categoria);
         while (categoria.getParentId() != null) {
-            categoria = repositoryCategoria.findById(categoria.getParentId()).get();
+            categoria = repositoryCategoria.findByIdAndDeletedAtNull(Math.toIntExact(categoria.getParentId())).get();
             categorias.add(categoria);
         }
         return categorias;
@@ -144,11 +153,10 @@ public class AtributoValorService {
             {
                 AtributoValor atributoToMod = atributoValorOptional.get();
                 atributoToMod.setValor(atributoValor.getValor());
-                atributoToMod.setCreated_at(new Date(System.currentTimeMillis()));
                 atributoToMod.setUpdated_at(new Date(System.currentTimeMillis()));
                 if (atributoValor.getProducto() != null)
                 {
-                    Optional<Producto> productoOptional = repositoryProducto.findById(atributoValor.getProducto());
+                    Optional<Producto> productoOptional = repositoryProducto.findByIdAndDeletedAtNull(Math.toIntExact(atributoValor.getProducto()));
                     if (productoOptional.isPresent())
                     {
                         atributoToMod.setProducto(productoOptional.get());
@@ -158,7 +166,7 @@ public class AtributoValorService {
                 }
                 if (atributoValor.getAtributo() != null)
                 {
-                    Optional<Atributo> atributoOptional = repositoryAtributo.findById(atributoValor.getAtributo());
+                    Optional<Atributo> atributoOptional = repositoryAtributo.findByIdAndDeletedAtNull(Math.toIntExact(atributoValor.getAtributo()));
                     if (atributoOptional.isPresent())
                     {
                         atributoToMod.setAtributo(atributoOptional.get());
@@ -166,9 +174,44 @@ public class AtributoValorService {
                     else
                         throw new NoSuchElementFoundException("El atributo "+atributoValor.getAtributo()+" no existe");
                 }
+                repository.save (atributoToMod);
+                return atributoToMod;
             }
             else {
+                Producto producto = atributoValorOptional.get().getProductoObject();
+                if ((producto.getEstado()==1) && (user.getUsername().equals(producto.getObjectUsuario().getEmail())))
+                {
+                    AtributoValor atributoToMod = atributoValorOptional.get();
+                    atributoToMod.setValor(atributoValor.getValor());
+                    atributoToMod.setUpdated_at(new Date(System.currentTimeMillis()));
+                    repository.save (atributoToMod);
+                    return atributoToMod;
+                }
+                else
+                    throw new NoSuchElementFoundException("El producto aún no está disponible en el sistema");
+            }
+        }
+        else
+            throw new NoSuchElementFoundException("El valor no existe en el sistema");
+    }
 
+    public AtributoValor deleteAtributoValor(int id, UserInfoDetails user) {
+        Optional<AtributoValor> atributoValorOptional = repository.findById(id);
+        if (atributoValorOptional.isPresent()) {
+            if (user.getAuthorities().contains(new SimpleGrantedAuthority("ADMIN"))) {
+                repository.delete(atributoValorOptional.get());
+                return null;
+            }
+            else
+            {
+                Producto producto = atributoValorOptional.get().getProductoObject();
+                if ((producto.getEstado()==1) && (user.getUsername().equals(producto.getObjectUsuario().getEmail())))
+                {
+                    repository.delete(atributoValorOptional.get());
+                    return null;
+                }
+                else
+                    throw new NoSuchElementFoundException("El producto aún no está disponible en el sistema");
             }
         }
         else

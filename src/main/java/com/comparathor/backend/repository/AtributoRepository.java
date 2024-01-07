@@ -13,4 +13,10 @@ public interface AtributoRepository extends JpaRepository<Atributo, Integer> {
     List<Atributo> findByCategoria(Categoria categoria);
 
     Optional<Atributo> findById(Long id);
+    
+    List<Atributo> findByDeletedAtNull();
+
+    List<Atributo> findByCategoriaAndDeletedAtNull(Categoria categoria);
+
+    Optional<Atributo> findByIdAndDeletedAtNull(int id);
 }

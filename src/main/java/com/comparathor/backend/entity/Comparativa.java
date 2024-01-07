@@ -1,25 +1,26 @@
 package com.comparathor.backend.entity;
 
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import org.hibernate.annotations.SQLDelete;
-
 
 import java.util.Date;
+import java.util.List;
 
-@Entity(name = "Categoria")
-@Table(name = "Categoria", schema = "comparathor")
-@SQLDelete(sql = "UPDATE Categoria SET deleted_at = NOW() WHERE id= ?")
-public class Categoria {
-
+@Entity(name = "Comparativa")
+@Table(name = "Comparativa", schema = "comparathor")
+public class Comparativa {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String nombre;
+    @ManyToOne (fetch = FetchType.EAGER, optional = false)
+    @JoinColumn(name = "usuarioId", referencedColumnName = "id", nullable = false, insertable = true, updatable = true)
+    private Usuario usuario;
 
-    private Long parentId;
+    @OneToMany(mappedBy = "comparativa")
+    private List<ComparativaProducto> comparativas;
 
     @Temporal(TemporalType.TIMESTAMP)
     private java.util.Date created_at;
@@ -28,16 +29,9 @@ public class Categoria {
     private java.util.Date updated_at;
 
     @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "deleted_at" )
-    private java.util.Date deletedAt;
+    private java.util.Date deleted_at;
 
-    public Long getParentId() {
-        return parentId;
-    }
-
-    public void setParentId(Long parentId) {
-        this.parentId = parentId;
-    }
+    String nombre;
 
     public Long getId() {
         return id;
@@ -47,12 +41,17 @@ public class Categoria {
         this.id = id;
     }
 
-    public String getNombre() {
-        return nombre;
+    @JsonIgnore
+    public Usuario getUsuarioObject() {
+        return usuario;
     }
 
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
+    public int getUsuario() {
+        return usuario.getId();
+    }
+
+    public void setUsuario(Usuario usuario) {
+        this.usuario = usuario;
     }
 
     public Date getCreated_at() {
@@ -72,11 +71,18 @@ public class Categoria {
     }
 
     public Date getDeleted_at() {
-        return deletedAt;
+        return deleted_at;
     }
 
     public void setDeleted_at(Date deleted_at) {
-        this.deletedAt = deleted_at;
+        this.deleted_at = deleted_at;
     }
 
+    public String getNombre() {
+        return nombre;
+    }
+
+    public void setNombre(String nombre) {
+        this.nombre = nombre;
+    }
 }

@@ -19,8 +19,14 @@ public interface ProductoRepository extends JpaRepository<Producto, Integer> {
     List<Producto> findByUsuario(Usuario usuario);
 
     List<Producto> findByEstado(Estado estado);
+    
 
     List<Producto> findByUsuarioOrEstado(Usuario usuario, Estado estado);
 
     List<Producto> findByUsuarioAndEstado(Usuario usuario, Estado estado);
+    List<Producto> findByUsuarioAndEstadoAndDeletedAtNull(Usuario usuario, Estado estado);
+
+    List<Producto> findByDeletedAtNullAndUsuarioOrEstado(Usuario usuario, Estado estado);
+
+    Optional<Producto> findByIdAndDeletedAtNull(int id);
 }

@@ -8,6 +8,7 @@ import com.comparathor.backend.service.UserInfoDetails;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -47,6 +48,7 @@ public class ProductoController {
     @PostMapping("/categories/{id}/items")
     @SecurityRequirement(name="Bearer Authentication")
     @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
+    @ResponseStatus( HttpStatus.CREATED)
     public Producto addNewCategoryItem(@PathVariable("id") int categoriaId, @RequestBody Producto producto) {
         UserInfoDetails user = (UserInfoDetails) SecurityContextHolder.getContext().getAuthentication()
                 .getPrincipal();
@@ -68,6 +70,7 @@ public class ProductoController {
     @PostMapping("/items/{id}/picture")
     @SecurityRequirement(name="Bearer Authentication")
     @PreAuthorize("hasAnyAuthority('ADMIN','USER')")
+    @ResponseStatus( HttpStatus.CREATED)
     public Producto addPicture(@PathVariable("id") int id, @RequestParam("image") MultipartFile multipartFile) {
         UserInfoDetails user = (UserInfoDetails) SecurityContextHolder.getContext().getAuthentication()
                 .getPrincipal();
@@ -94,5 +97,15 @@ public class ProductoController {
 
         return productoService.deletePicture(id, user);
     }
+
+    @DeleteMapping("/items/{id}")
+    @SecurityRequirement(name="Bearer Authentication")
+    @PreAuthorize("hasAnyAuthority('ADMIN','USER')")
+    public Producto deleteProducto(@PathVariable("id") int id ) {
+        UserInfoDetails user = (UserInfoDetails) SecurityContextHolder.getContext().getAuthentication()
+                .getPrincipal();
+        return productoService.deleteProducto(id,user);
+    }
+
 
 }

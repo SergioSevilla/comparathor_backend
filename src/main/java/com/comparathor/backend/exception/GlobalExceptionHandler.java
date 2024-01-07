@@ -43,6 +43,20 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return buildErrorResponse(itemNotFoundException, HttpStatus.NOT_FOUND, request);
     }
 
+    @ExceptionHandler(UserDuplicatedException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ResponseEntity<Object> handleUserDuplicatedException(UserDuplicatedException userDuplicatedException, WebRequest request) {
+
+        return buildErrorResponse(userDuplicatedException, HttpStatus.FORBIDDEN, request);
+    }
+
+    @ExceptionHandler(ForbiddenException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ResponseEntity<Object> handleForbiddenException(ForbiddenException forbiddenException, WebRequest request) {
+
+        return buildErrorResponse(forbiddenException, HttpStatus.FORBIDDEN, request);
+    }
+
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ResponseEntity<Object> handleAllUncaughtException(Exception exception, WebRequest request) {

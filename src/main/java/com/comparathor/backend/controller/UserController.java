@@ -9,6 +9,7 @@ import com.comparathor.backend.service.UserInfoService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -39,7 +40,8 @@ public class UserController {
 
     // Da de alta un usuario con el rol "USER"
     @PostMapping("/users/create")
-    public String addNewUser(@RequestBody Usuario usuario) {
+    @ResponseStatus( HttpStatus.CREATED)
+    public Usuario addNewUser(@RequestBody Usuario usuario) {
         usuario.setRol(rolService.getRolById(1));
         return service.addUser(usuario);
     }
@@ -59,7 +61,7 @@ public class UserController {
     @PutMapping("/users")
     @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
     @SecurityRequirement(name="Bearer Authentication")
-    public String ModifyUser(@RequestBody Usuario usuario) {
+    public Usuario ModifyUser(@RequestBody Usuario usuario) {
         UserInfoDetails user = (UserInfoDetails)SecurityContextHolder.getContext().getAuthentication()
                 .getPrincipal();
         return service.modifyUser(user.getUsername(), usuario);
@@ -99,7 +101,7 @@ public class UserController {
     @PutMapping("/users/changePassword")
     @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
     @SecurityRequirement(name="Bearer Authentication")
-    public String changePass(@RequestBody Usuario usuario) {
+    public Usuario changePass(@RequestBody Usuario usuario) {
         UserInfoDetails user = (UserInfoDetails)SecurityContextHolder.getContext().getAuthentication()
                 .getPrincipal();
         return service.changePassword(user.getUsername(),usuario.getPassword());
@@ -109,7 +111,7 @@ public class UserController {
     @GetMapping("/users/checkEmail")
     @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
     @SecurityRequirement(name="Bearer Authentication")
-    public String checkEmail(@RequestParam String email) {
+    public Usuario checkEmail(@RequestParam String email) {
 
         return service.checkEmail(email);
     }

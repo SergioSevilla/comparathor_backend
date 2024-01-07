@@ -36,12 +36,18 @@ public class PuntuacionService {
         this.repositoryProducto = repositoryProducto;
     }
 
-    public List<Puntuacion> getScoresItem(int id) {
-        Optional<Producto> productoOpt = repositoryProducto.findById(id);
+    public List<Puntuacion> getScoresItem(int id, UserInfoDetails user) {
+        Optional<Producto> productoOpt = repositoryProducto.findByIdAndDeletedAtNull(id);
         if (productoOpt.isPresent())
         {
-            Producto producto = productoOpt.get();
-            return repository.findByProducto(productoOpt.get());
+            if (user.getAuthorities().contains(new SimpleGrantedAuthority("ADMIN")))
+            {
+                return repository.findByProducto(productoOpt.get());
+            }
+            else
+            {
+                return repository.findByProductoAndDeletedAtNull(productoOpt.get());
+            }
         }
         else
             throw new NoSuchElementFoundException("El producto no existe en el sistema");
@@ -50,7 +56,7 @@ public class PuntuacionService {
 
     public Puntuacion modifyPuntuacion(int id, Puntuacion puntuacion, UserInfoDetails user)
     {
-        Optional<Puntuacion> puntuacionOpt = this.repository.findById(id);
+        Optional<Puntuacion> puntuacionOpt = this.repository.findByIdAndDeletedAtNull(id);
         if (puntuacionOpt.isPresent())
         {
             Puntuacion puntuacionToModify = puntuacionOpt.get();
@@ -72,12 +78,12 @@ public class PuntuacionService {
     }
 
     public Puntuacion addPuntuacion(int id, Puntuacion puntuacion, UserInfoDetails user) {
-        Optional<Producto> productoOpt = repositoryProducto.findById(id);
+        Optional<Producto> productoOpt = repositoryProducto.findByIdAndDeletedAtNull(id);
         if (productoOpt.isPresent())
         {
             Producto producto = productoOpt.get();
             Optional<Usuario> usuarioOpt = repositoryUser.findByEmail(user.getUsername());
-            Optional<Puntuacion> puntuacionOpt = repository.findByProductoAndUsuario(producto,usuarioOpt.get());
+            Optional<Puntuacion> puntuacionOpt = repository.findByProductoAndUsuarioAndDeletedAtNull(producto,usuarioOpt.get());
             if (puntuacionOpt.isPresent())
             {
                 throw new NoSuchElementFoundException("La puntuacion ya existe en el sistema");
@@ -98,4 +104,25 @@ public class PuntuacionService {
             throw new NoSuchElementFoundException("El producto no existe en el sistema");
 
     }
+
+    public Puntuacion deletePuntuacion(int id, UserInfoDetails user) {
+        Optional<Puntuacion> puntuacionOpt = this.repository.findByIdAndDeletedAtNull(id);
+        if (puntuacionOpt.isPresent())
+        {
+            Optional<Usuario> usuarioOpt = repositoryUser.findByEmail(user.getUsername());
+            Puntuacion puntuacionToDelete = puntuacionOpt.get();
+            if ((puntuacionToDelete.getUsuarioObj().getId() == usuarioOpt.get().getId()) ||
+                    (user.getAuthorities().contains(new SimpleGrantedAuthority("ADMIN"))))
+            {
+                repository.delete(puntuacionToDelete);
+                return null;
+            }
+            else {
+                throw new NoSuchElementFoundException("No se puede eliminar la puntuación de otro usuario");
+            }
+        }
+        else
+            throw new NoSuchElementFoundException("La puntuación no existe en el sistema");
+    }
+
 }

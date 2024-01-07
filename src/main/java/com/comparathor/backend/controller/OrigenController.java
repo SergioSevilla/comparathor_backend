@@ -6,6 +6,7 @@ import com.comparathor.backend.service.OrigenService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -36,6 +37,7 @@ public class OrigenController {
     @PostMapping("/suppliers")
     @SecurityRequirement(name="Bearer Authentication")
     @PreAuthorize("hasAuthority('ADMIN')")
+    @ResponseStatus( HttpStatus.CREATED)
     public Origen addSupplier(@RequestBody Origen origen) {
         return origenService.addOrigen(origen);
     }

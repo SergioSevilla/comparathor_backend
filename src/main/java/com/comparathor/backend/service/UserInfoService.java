@@ -1,6 +1,8 @@
 package com.comparathor.backend.service;
 
 import com.comparathor.backend.entity.Usuario;
+import com.comparathor.backend.exception.NoSuchElementFoundException;
+import com.comparathor.backend.exception.UserDuplicatedException;
 import com.comparathor.backend.repository.UserInfoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -34,31 +36,41 @@ public class UserInfoService implements UserDetailsService {
                 .orElseThrow(() -> new UsernameNotFoundException("User not found " + email));
     }
 
-    public String addUser(Usuario usuario) {
-        usuario.setPassword(encoder.encode(usuario.getPassword()));
-        usuario.setCreated_at(new Date(System.currentTimeMillis()));
-        usuario.setUpdated_at(new Date(System.currentTimeMillis()));
-        repository.save(usuario);
-        return "User Added Successfully";
+    public Usuario addUser(Usuario usuario) {
+
+        if (repository.findByEmail(usuario.getEmail()).isPresent())
+        {
+            throw new UserDuplicatedException("El usuario ya existe en el sistema");
+        }
+        else
+        {
+            usuario.setPassword(encoder.encode(usuario.getPassword()));
+            usuario.setCreated_at(new Date(System.currentTimeMillis()));
+            usuario.setUpdated_at(new Date(System.currentTimeMillis()));
+            repository.save(usuario);
+            usuario.setPassword("");
+            return usuario;
+        }
     }
 
-    public String changePassword(String email, String password) {
+    public Usuario changePassword(String email, String password) {
         Optional<Usuario> oUsuario = repository.findByEmail(email);
         if (oUsuario.isPresent()) {
             Usuario usuario = oUsuario.get();
             usuario.setPassword(encoder.encode(password));
             usuario.setUpdated_at(new Date(System.currentTimeMillis()));
             repository.save(usuario);
-            return "User Update Successfully";
+            usuario.setPassword("");
+            return usuario;
         }
         else {
-            return "error";
+            throw new NoSuchElementFoundException("El usuario no existe en el sistema");
         }
 
 
     }
 
-    public String modifyUser(String username, Usuario usuario) {
+    public Usuario modifyUser(String username, Usuario usuario) {
         Optional<Usuario> oUsuario = repository.findByEmail(username);
         if (oUsuario.isPresent()) {
             Usuario usuarioOld = oUsuario.get();
@@ -66,10 +78,11 @@ public class UserInfoService implements UserDetailsService {
             usuarioOld.setNombre(usuario.getNombre());
             usuarioOld.setUpdated_at(new Date(System.currentTimeMillis()));
             repository.save(usuarioOld);
-            return "User Update Successfully";
+            usuarioOld.setPassword("");
+            return usuarioOld;
         }
         else {
-            return "error";
+            throw new NoSuchElementFoundException("El usuario no existe en el sistema");
         }
     }
 
@@ -121,14 +134,16 @@ public class UserInfoService implements UserDetailsService {
         return oldUsuario;
     }
 
-    public String checkEmail(String email)
+    public Usuario checkEmail(String email)
     {
         Optional<Usuario> oUsuario = repository.findByEmail(email);
         if (oUsuario.isPresent()) {
-            return "Existe";
+            Usuario usuario = oUsuario.get();
+            usuario.setPassword("");
+            return usuario;
         }
         else {
-            return "No existe";
+            throw new NoSuchElementFoundException("El usuario con email "+email+" no existe en el sistema");
         }
     }
 }

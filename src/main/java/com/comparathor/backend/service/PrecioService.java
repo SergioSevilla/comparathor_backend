@@ -43,8 +43,15 @@ public class PrecioService {
     }
 
     public List<Precio> getPreciosProducto(UserInfoDetails user, int id) {
-        //ver si el producto existe
-        Optional<Producto> productoOptional = repositoryProducto.findById(id);
+        Optional<Producto> productoOptional;
+        if (user.getAuthorities().contains(new SimpleGrantedAuthority("ADMIN")))
+        {
+            productoOptional = repositoryProducto.findById(id);
+        }
+        else
+        {
+            productoOptional = repositoryProducto.findByIdAndDeletedAtNull(id);
+        }
         if (productoOptional.isPresent())
         {
             if (user.getAuthorities().contains(new SimpleGrantedAuthority("ADMIN")))
@@ -60,10 +67,10 @@ public class PrecioService {
     }
 
     private List<Precio> getPreciosUser(Producto producto, UserInfoDetails user) {
-        Usuario usuario = repositoryUsuario.findByEmail(user.getUsername()).get();
+
         if ((producto.getEstado()==2) || ((producto.getEstado()==1) && (producto.getUsuario().equals(user.getUsername()))))
         {
-            return repository.findByProducto(producto);
+            return repository.findByProductoAndDeletedAtNull(producto);
         }
         else
             throw new NoSuchElementFoundException("El producto aún no está disponible");
@@ -74,20 +81,22 @@ public class PrecioService {
     }
 
     public Precio addPreciosProducto(UserInfoDetails user, Precio precio) {
-        Optional<Producto> productoOptional = repositoryProducto.findById(precio.getProducto());
+        Optional<Producto> productoOptional = repositoryProducto.findByIdAndDeletedAtNull(Math.toIntExact(precio.getProducto()));
         if (productoOptional.isPresent())
         {
             Optional<Origen> origenOptional = repositoryOrigen.findById((int) precio.getOrigen());
             if (origenOptional.isPresent())
             {
-                if (repository.findByProductoAndOrigen(productoOptional.get(),origenOptional.get()).isPresent())
+                if (repository.findByProductoAndOrigenAndDeletedAtNull(productoOptional.get(),origenOptional.get()).isPresent())
                 {
+
                     throw new NoSuchElementFoundException("Ya existe un precio en el sistema");
                 }
                 else
                 {
                     if (user.getAuthorities().contains(new SimpleGrantedAuthority("ADMIN")))
                     {
+
                         return addPrecioAdmin(precio, productoOptional.get(), origenOptional.get());
                     }
                     else {
@@ -139,7 +148,15 @@ public class PrecioService {
     }
 
     public Precio modifyPrecio(UserInfoDetails user, int id, Precio precio) {
-        Optional<Precio> precioOptional = repository.findById(id);
+        Optional<Precio> precioOptional;
+        if (user.getAuthorities().contains(new SimpleGrantedAuthority("ADMIN")))
+        {
+            precioOptional = repository.findById(id);
+        }
+        else {
+            precioOptional = repository.findByIdAndDeletedAtNull(id);
+        }
+
         if (precioOptional.isPresent()) {
             if (user.getAuthorities().contains(new SimpleGrantedAuthority("ADMIN")))
             {
@@ -190,5 +207,37 @@ public class PrecioService {
         }
         else
             throw new NoSuchElementFoundException("El origen no existe en el sistema");
+    }
+
+    public Precio deletePrice(UserInfoDetails user, int id)
+    {
+        Optional<Precio> precioOptional;
+        if (user.getAuthorities().contains(new SimpleGrantedAuthority("ADMIN")))
+        {
+            precioOptional = repository.findById(id);
+        }
+        else {
+            precioOptional = repository.findByIdAndDeletedAtNull(id);
+        }
+        if (precioOptional.isPresent()) {
+            if (user.getAuthorities().contains(new SimpleGrantedAuthority("ADMIN")))
+            {
+                repository.delete(precioOptional.get());
+                return null;
+            }
+            else
+            {
+                Producto producto = precioOptional.get().getProductoObject();
+                if ((precioOptional.get().getEstado()==1) && (producto.getUsuario().equals(user.getUsername())))
+                {
+                    repository.delete(precioOptional.get());
+                    return null;
+                }
+                else
+                    throw new NoSuchElementFoundException("No se puede eliminar un precio en este estado");
+            }
+        }
+        else
+            throw new NoSuchElementFoundException("El precio no existe en el sistema");
     }
 }

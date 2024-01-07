@@ -1,21 +1,16 @@
 package com.comparathor.backend.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import org.hibernate.annotations.SQLDelete;
 
 import java.util.Date;
 
-@Entity(name = "Puntuacion")
-@Table(name = "Puntuacion", schema = "comparathor")
-@SQLDelete(sql = "UPDATE Puntuacion SET deleted_at = NOW() WHERE id= ?")
-public class Puntuacion {
+@Entity(name = "ComparativaProducto")
+@Table(name = "ComparativaProducto", schema = "comparathor")
+public class ComparativaProducto {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    private int valor;
 
     @Temporal(TemporalType.TIMESTAMP)
     private java.util.Date created_at;
@@ -24,19 +19,15 @@ public class Puntuacion {
     private java.util.Date updated_at;
 
     @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "deleted_at" )
-    private java.util.Date deletedAt;
+    private java.util.Date deleted_at;
 
     @ManyToOne (fetch = FetchType.EAGER, optional = false)
-    @JoinColumn(name = "usuarioId", referencedColumnName = "id", nullable = false, insertable = true, updatable = true)
-    private Usuario usuario;
+    @JoinColumn(name = "comparativaId", referencedColumnName = "id", nullable = false, insertable = true, updatable = true)
+    private Comparativa comparativa;
 
     @ManyToOne (fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "productoId", referencedColumnName = "id", nullable = false, insertable = true, updatable = true)
     private Producto producto;
-
-
-
 
     public Long getId() {
         return id;
@@ -44,14 +35,6 @@ public class Puntuacion {
 
     public void setId(Long id) {
         this.id = id;
-    }
-
-    public int getValor() {
-        return valor;
-    }
-
-    public void setValor(int valor) {
-        this.valor = valor;
     }
 
     public Date getCreated_at() {
@@ -71,33 +54,23 @@ public class Puntuacion {
     }
 
     public Date getDeleted_at() {
-        return deletedAt;
+        return deleted_at;
     }
 
     public void setDeleted_at(Date deleted_at) {
-        this.deletedAt = deleted_at;
+        this.deleted_at = deleted_at;
     }
 
-    @JsonIgnore
-    public Usuario getUsuarioObj() {
-        return usuario;
+    public Comparativa getComparativa() {
+        return comparativa;
     }
 
-    public int getUsuario() {
-        return usuario.getId();
+    public void setComparativa(Comparativa comparativa) {
+        this.comparativa = comparativa;
     }
 
-    public void setUsuario(Usuario usuario) {
-        this.usuario = usuario;
-    }
-
-    @JsonIgnore
-    public Producto getProductoObj() {
+    public Producto getProducto() {
         return producto;
-    }
-
-    public long getProducto() {
-        return producto.getId();
     }
 
     public void setProducto(Producto producto) {

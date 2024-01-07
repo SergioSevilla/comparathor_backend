@@ -9,6 +9,7 @@ import com.comparathor.backend.service.UserInfoDetails;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -45,6 +46,7 @@ public class ComentarioController {
     @PostMapping("/items/{id}/comments")
     @SecurityRequirement(name="Bearer Authentication")
     @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
+    @ResponseStatus( HttpStatus.CREATED)
     public Comentario addComentario(@PathVariable("id") int id,@RequestBody Comentario comentario ) {
         UserInfoDetails user = (UserInfoDetails) SecurityContextHolder.getContext().getAuthentication()
                 .getPrincipal();
@@ -62,6 +64,15 @@ public class ComentarioController {
 
     }
 
+    @DeleteMapping("/comments/{id}")
+    @SecurityRequirement(name="Bearer Authentication")
+    @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
+    public Comentario deleteComentario(@PathVariable("id") int id ) {
+        UserInfoDetails user = (UserInfoDetails) SecurityContextHolder.getContext().getAuthentication()
+                .getPrincipal();
+        return comentarioService.deleteComentario(id,user);
+
+    }
 
 
 }

@@ -35,13 +35,13 @@ public class ComentarioService {
 
 
     public List<Comentario> getAllCommentsItem(int id, UserInfoDetails user) {
-        Optional<Producto> productoOpt = repositoryProducto.findById(id);
+        Optional<Producto> productoOpt = repositoryProducto.findByIdAndDeletedAtNull(id);
         if (productoOpt.isPresent())
         {
             Producto producto = productoOpt.get();
             if (producto.getObjectEstado().getId()==2)
             {
-                return repository.findByProducto(productoOpt.get());
+                return repository.findByProductoAndDeletedAtNull(productoOpt.get());
             }
             else
             {
@@ -50,7 +50,7 @@ public class ComentarioService {
                 {
                     if (producto.getObjectUsuario().getId() == usuarioOpt.get().getId())
                     {
-                        return repository.findByProducto(productoOpt.get());
+                        return repository.findByProductoAndDeletedAtNull(productoOpt.get());
                     }
                 }
                 else
@@ -76,7 +76,7 @@ public class ComentarioService {
     }
 
     public Comentario addComentario(int id, UserInfoDetails user, Comentario comentario) {
-        Optional<Producto> productoOpt = this.repositoryProducto.findById(id);
+        Optional<Producto> productoOpt = this.repositoryProducto.findByIdAndDeletedAtNull(id);
         if (productoOpt.isPresent())
         {
             Producto producto = productoOpt.get();
@@ -104,7 +104,7 @@ public class ComentarioService {
     }
 
     public Comentario modifyComentario(int id, UserInfoDetails user, Comentario comentario) {
-        Optional<Comentario> comentarioOpt = this.repository.findById(id);
+        Optional<Comentario> comentarioOpt = this.repository.findByIdAndDeletedAtNull(id);
         if (comentarioOpt.isPresent())
         {
             Comentario comentarioToModify = comentarioOpt.get();
@@ -125,5 +125,25 @@ public class ComentarioService {
         else
             throw new NoSuchElementFoundException("El comentario no existe en el sistema");
 
+    }
+
+    public Comentario deleteComentario(int id, UserInfoDetails user) {
+        Optional<Comentario> comentarioOpt = this.repository.findByIdAndDeletedAtNull(id);
+        if (comentarioOpt.isPresent())
+        {
+            Optional<Usuario> usuarioOpt = repositoryUser.findByEmail(user.getUsername());
+            Comentario comentarioToDelete = comentarioOpt.get();
+            if ((comentarioToDelete.getUsuarioObj().getId() == usuarioOpt.get().getId()) ||
+                    (user.getAuthorities().contains(new SimpleGrantedAuthority("ADMIN"))))
+            {
+                repository.delete(comentarioToDelete);
+                return null;
+            }
+            else {
+                throw new NoSuchElementFoundException("No se puede eliminar un comentario de otro usuario");
+            }
+        }
+        else
+            throw new NoSuchElementFoundException("El comentario no existe en el sistema");
     }
 }

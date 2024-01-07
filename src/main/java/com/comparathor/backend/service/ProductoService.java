@@ -1,14 +1,9 @@
 package com.comparathor.backend.service;
 
-import com.comparathor.backend.entity.Categoria;
-import com.comparathor.backend.entity.Estado;
-import com.comparathor.backend.entity.Producto;
-import com.comparathor.backend.entity.Usuario;
+import com.comparathor.backend.entity.*;
+import com.comparathor.backend.exception.ForbiddenException;
 import com.comparathor.backend.exception.NoSuchElementFoundException;
-import com.comparathor.backend.repository.CategoriaRepository;
-import com.comparathor.backend.repository.EstadoRepository;
-import com.comparathor.backend.repository.ProductoRepository;
-import com.comparathor.backend.repository.UserInfoRepository;
+import com.comparathor.backend.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -48,14 +43,27 @@ public class ProductoService {
     @Autowired
     private final CategoriaRepository repositoryCategoria;
 
+    @Autowired
+    private final AtributoValorRepository repositoryAtributoValor;
+
+    @Autowired
+    private final ComentarioRepository repositoryComentario;
+
+    @Autowired
+    private final PrecioRepository repositoryPrecio;
+
     public ProductoService(final ProductoRepository repository, final UserInfoRepository repositoryUser,
-                           EstadoRepository repositoryEstado, CategoriaRepository repositoryCategoria) {
+                           EstadoRepository repositoryEstado, CategoriaRepository repositoryCategoria, AtributoValorRepository repositoryAtributoValor, ComentarioRepository repositoryComentario, PrecioRepository repositoryPrecio) {
         this.repository = repository;
         this.repositoryUser = repositoryUser;
         this.repositoryEstado = repositoryEstado;
         this.repositoryCategoria = repositoryCategoria;
 
+        this.repositoryAtributoValor = repositoryAtributoValor;
+        this.repositoryComentario = repositoryComentario;
+        this.repositoryPrecio = repositoryPrecio;
     }
+
     public List<Producto> getAllProductos(UserInfoDetails user, Long estadoId) {
         Optional<Usuario> usuarioOpt = repositoryUser.findByEmail(user.getUsername());
         if (usuarioOpt.isPresent())
@@ -76,12 +84,12 @@ public class ProductoService {
                 if (estadoId != null)
                 {
                     if (repositoryEstado.findById(estadoId).isPresent())
-                        return repository.findByUsuarioAndEstado(usuario, repositoryEstado.findById(estadoId).get());
+                        return clearDelete(repository.findByUsuarioAndEstado(usuario, repositoryEstado.findById(estadoId).get()));
                     else
                         throw new NoSuchElementFoundException("El estado no existe en el sistema");
 
                 }
-                else return repository.findByUsuarioOrEstado(usuario, repositoryEstado.findById(2).get());
+                else return clearDelete(repository.findByUsuarioOrEstado(usuario, repositoryEstado.findById(2).get()));
             }
 
         }
@@ -91,11 +99,16 @@ public class ProductoService {
         }
     }
 
+    private List<Producto> clearDelete(List<Producto> resultado) {
+        resultado.removeIf((producto) -> (producto.getDeleted_at() != null));
+        return resultado;
+    }
+
     public Producto addProducto(UserInfoDetails user, Producto producto, int categoriaId) {
         Optional<Usuario> usuarioOpt = repositoryUser.findByEmail(user.getUsername());
         if (usuarioOpt.isPresent())
         {
-            Optional<Categoria> categoriaOpt = repositoryCategoria.findById(categoriaId);
+            Optional<Categoria> categoriaOpt = repositoryCategoria.findByIdAndDeletedAtNull(categoriaId);
             if (categoriaOpt.isPresent())
             {
                 producto.setCategoria(categoriaOpt.get());
@@ -120,7 +133,7 @@ public class ProductoService {
 
     public Producto modifyProducto(int id, Producto producto, UserInfoDetails user)
     {
-        Optional<Producto> productoOpt = repository.findById(id);
+        Optional<Producto> productoOpt = repository.findByIdAndDeletedAtNull(id);
         if (productoOpt.isPresent())
         {
             Producto productoMod= productoOpt.get();
@@ -190,7 +203,7 @@ public class ProductoService {
                 else throw new NoSuchElementFoundException("El prodcuto no existe en el sistema");
             }
             else {
-                Optional<Producto> productoOpt = repository.findById(id);
+                Optional<Producto> productoOpt = repository.findByIdAndDeletedAtNull(id);
                 if (productoOpt.isPresent())
                 {
                     if((productoOpt.get().getEstado()==2) || (
@@ -213,7 +226,7 @@ public class ProductoService {
 
     public Producto saveImage(MultipartFile multipartFile, int id, UserInfoDetails user)
     {
-        Optional<Producto> productoOpt = repository.findById(id);
+        Optional<Producto> productoOpt = repository.findByIdAndDeletedAtNull(id);
         if (productoOpt.isPresent())
         {
             Producto producto = productoOpt.get();
@@ -253,7 +266,7 @@ public class ProductoService {
 
     public ResponseEntity<?> getImage(int id, UserInfoDetails user) {
         String fileName = "";
-        Optional<Producto> productoOpt = repository.findById(id);
+        Optional<Producto> productoOpt = repository.findByIdAndDeletedAtNull(id);
         if (productoOpt.isPresent())
         {
             Producto producto = productoOpt.get();
@@ -293,7 +306,7 @@ public class ProductoService {
 
     public Producto deletePicture(int id, UserInfoDetails user)
     {
-        Optional<Producto> productoOpt = repository.findById(id);
+        Optional<Producto> productoOpt = repository.findByIdAndDeletedAtNull(id);
         if (productoOpt.isPresent())
         {
             Producto producto = productoOpt.get();
@@ -323,5 +336,31 @@ public class ProductoService {
 
         File fi = new File(this.uploadDir+foto);
         fi.delete();
+    }
+
+    public Producto deleteProducto(int id, UserInfoDetails user) {
+        Optional<Producto> productoOpt = repository.findByIdAndDeletedAtNull(id);
+        if (productoOpt.isPresent())
+        {
+            if (((productoOpt.get().getObjectUsuario().getId()==repositoryUser.findByEmail(user.getUsername()).get().getId()) &&
+                    productoOpt.get().getObjectEstado().getId()==1) ||
+                    (user.getAuthorities().contains(new SimpleGrantedAuthority("ADMIN")))) {
+                repository.delete(productoOpt.get());
+                //borrar atributosValor
+                List<AtributoValor> atributosValor = repositoryAtributoValor.findByProducto(productoOpt.get());
+                for (AtributoValor atributo : atributosValor) repositoryAtributoValor.delete(atributo);
+                //borrar comentarios
+                List<Comentario> comentarios = repositoryComentario.findByProducto(productoOpt.get());
+                for (Comentario comentario : comentarios) repositoryComentario.delete(comentario);
+                //borrar precios
+                List<Precio> precios = repositoryPrecio.findByProducto(productoOpt.get());
+                for (Precio precio : precios) repositoryPrecio.delete(precio);
+                return null;
+            }
+            else
+                throw new ForbiddenException("No tiene permisos para borrar este producto");
+        }
+        else
+            throw new NoSuchElementFoundException("El producto no se encuentra en el sistema");
     }
 }

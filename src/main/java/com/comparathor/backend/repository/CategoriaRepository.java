@@ -15,4 +15,10 @@ public interface CategoriaRepository  extends JpaRepository<Categoria, Integer> 
     List<Categoria> findByParentId(Long parentId);
 
     List<Categoria> findAll();
+
+    List<Categoria> findByDeletedAtNull();
+
+    List<Categoria> findByParentIdAndDeletedAtNull(Long parentId);
+
+    Optional<Categoria> findByIdAndDeletedAtNull(int id);
 }

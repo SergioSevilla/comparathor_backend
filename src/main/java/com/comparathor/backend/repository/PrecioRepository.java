@@ -14,4 +14,10 @@ public interface PrecioRepository extends JpaRepository<Precio,Integer> {
     List<Precio> findByProducto(Producto producto);
 
     Optional<Precio> findByProductoAndOrigen(Producto producto, Origen origen);
+
+    List<Precio> findByProductoAndDeletedAtNull(Producto producto);
+
+    Optional<Object> findByProductoAndOrigenAndDeletedAtNull(Producto producto, Origen origen);
+
+    Optional<Precio> findByIdAndDeletedAtNull(int id);
 }

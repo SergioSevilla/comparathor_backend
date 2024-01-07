@@ -3,11 +3,13 @@ package com.comparathor.backend.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import org.hibernate.annotations.SQLDelete;
 
 import java.util.Date;
 
 @Entity(name = "Comentario")
 @Table(name = "Comentario", schema = "comparathor")
+@SQLDelete(sql = "UPDATE Comentario SET deleted_at = NOW() WHERE id= ?")
 public class Comentario {
 
     @Id
@@ -23,7 +25,8 @@ public class Comentario {
     private java.util.Date updated_at;
 
     @Temporal(TemporalType.TIMESTAMP)
-    private java.util.Date deleted_at;
+    @Column(name = "deleted_at" )
+    private java.util.Date deletedAt;
 
 
     @ManyToOne (fetch = FetchType.EAGER, optional = false)
@@ -67,11 +70,11 @@ public class Comentario {
     }
 
     public Date getDeleted_at() {
-        return deleted_at;
+        return deletedAt;
     }
 
     public void setDeleted_at(Date deleted_at) {
-        this.deleted_at = deleted_at;
+        this.deletedAt = deleted_at;
     }
 
     @JsonIgnore

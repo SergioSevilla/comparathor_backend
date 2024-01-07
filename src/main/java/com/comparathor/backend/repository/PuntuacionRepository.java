@@ -15,4 +15,10 @@ public interface PuntuacionRepository  extends JpaRepository<Puntuacion, Integer
     List<Puntuacion> findByProducto(Producto producto);
 
     Optional<Puntuacion> findByProductoAndUsuario(Producto producto, Usuario usuario);
+
+    Optional<Puntuacion> findByIdAndDeletedAtNull(int id);
+
+    List<Puntuacion> findByProductoAndDeletedAtNull(Producto producto);
+
+    Optional<Puntuacion> findByProductoAndUsuarioAndDeletedAtNull(Producto producto, Usuario usuario);
 }

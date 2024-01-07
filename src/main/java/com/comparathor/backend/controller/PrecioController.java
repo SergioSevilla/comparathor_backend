@@ -7,6 +7,7 @@ import com.comparathor.backend.service.UserInfoDetails;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -34,6 +35,7 @@ public class PrecioController {
     @PostMapping("/prices")
     @SecurityRequirement(name="Bearer Authentication")
     @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
+    @ResponseStatus( HttpStatus.CREATED)
     public Precio addItemPrices( @RequestBody Precio precio) {
         UserInfoDetails user = (UserInfoDetails) SecurityContextHolder.getContext().getAuthentication()
                 .getPrincipal();
@@ -43,10 +45,18 @@ public class PrecioController {
     @PutMapping("/prices/{id}")
     @SecurityRequirement(name="Bearer Authentication")
     @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
-    public Precio ModifyPrice(@PathVariable("id") int id,  @RequestBody Precio precio) {
+    public Precio modifyPrice(@PathVariable("id") int id,  @RequestBody Precio precio) {
         UserInfoDetails user = (UserInfoDetails) SecurityContextHolder.getContext().getAuthentication()
                 .getPrincipal();
         return precioService.modifyPrecio(user, id, precio);
     }
 
+    @DeleteMapping("/prices/{id}")
+    @SecurityRequirement(name="Bearer Authentication")
+    @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
+    public Precio deletePrice(@PathVariable("id") int id) {
+        UserInfoDetails user = (UserInfoDetails) SecurityContextHolder.getContext().getAuthentication()
+                .getPrincipal();
+        return precioService.deletePrice(user, id);
+    }
 }

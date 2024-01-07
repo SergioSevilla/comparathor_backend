@@ -9,6 +9,7 @@ import com.comparathor.backend.service.UserInfoDetails;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -36,6 +37,7 @@ public class AtributoValorController {
     @PostMapping("/values")
     @SecurityRequirement(name="Bearer Authentication")
     @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
+    @ResponseStatus( HttpStatus.CREATED)
     public AtributoValor addNewCategoryItem(@RequestBody AtributoValor atributoValor) {
         UserInfoDetails user = (UserInfoDetails) SecurityContextHolder.getContext().getAuthentication()
                 .getPrincipal();
@@ -49,5 +51,14 @@ public class AtributoValorController {
         UserInfoDetails user = (UserInfoDetails) SecurityContextHolder.getContext().getAuthentication()
                 .getPrincipal();
         return atributoValorService.modifyAtributoValor(id, user,atributoValor);
+    }
+
+    @DeleteMapping("/values/{id}")
+    @SecurityRequirement(name="Bearer Authentication")
+    @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
+    public AtributoValor deleteCategoryItem(@PathVariable("id") int id) {
+        UserInfoDetails user = (UserInfoDetails) SecurityContextHolder.getContext().getAuthentication()
+                .getPrincipal();
+        return atributoValorService.deleteAtributoValor(id, user);
     }
 }
