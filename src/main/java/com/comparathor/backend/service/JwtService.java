@@ -1,5 +1,6 @@
 package com.comparathor.backend.service;
 
+import com.comparathor.backend.entity.JwtToken;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -18,9 +19,10 @@ import java.util.function.Function;
 public class JwtService {
 
     public static final String SECRET = "5367566B59703373367639792F423F4528482B4D6251655468576D5A71347437";
-    public String generateToken(String userName) {
+    public JwtToken generateToken(String userName) {
         Map<String, Object> claims = new HashMap<>();
-        return createToken(claims, userName);
+        JwtToken token = new JwtToken(createToken(claims, userName));
+        return token;
     }
 
     private String createToken(Map<String, Object> claims, String userName) {

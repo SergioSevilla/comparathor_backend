@@ -1,6 +1,7 @@
 package com.comparathor.backend.controller;
 
 import com.comparathor.backend.entity.AuthRequest;
+import com.comparathor.backend.entity.JwtToken;
 import com.comparathor.backend.entity.Usuario;
 import com.comparathor.backend.service.JwtService;
 import com.comparathor.backend.service.RolService;
@@ -87,8 +88,9 @@ public class UserController {
     }
 
     // Devuelve JWT si el usuario y contraseña es correcta
+
     @PostMapping("/users/login")
-    public String login(@RequestBody AuthRequest authRequest) {
+    public JwtToken login(@RequestBody AuthRequest authRequest) {
         Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(authRequest.getEmail(), authRequest.getPassword()));
         if (authentication.isAuthenticated()) {
             return jwtService.generateToken(authRequest.getEmail());
