@@ -285,7 +285,7 @@ public class ProductoService {
                     }
 
                     return ResponseEntity.status(HttpStatus.OK)
-                            .contentType(MediaType.valueOf("image/png"))
+                            .contentType(MediaType.valueOf("image/jpeg"))
                             .body(image);
                 }
                 else
@@ -362,5 +362,26 @@ public class ProductoService {
         }
         else
             throw new NoSuchElementFoundException("El producto no se encuentra en el sistema");
+    }
+
+    public List<Producto>  getProductoByCat(UserInfoDetails user, int categoriaId) {
+
+        Optional<Usuario> usuarioOpt = repositoryUser.findByEmail(user.getUsername());
+        if (usuarioOpt.isPresent())
+        {
+            if (user.getAuthorities().contains(new SimpleGrantedAuthority("ADMIN")))
+            {
+                return repository.findByCategoria(repositoryCategoria.findById(categoriaId));
+            }
+            else {
+                Usuario usuario = usuarioOpt.get();
+                return clearDelete(repository.findByUsuarioAndCategoriaOrEstadoAndCategoria(usuario, repositoryCategoria.findById(categoriaId), repositoryEstado.findById(2).get(),repositoryCategoria.findById(categoriaId)));
+            }
+
+        }
+        else
+        {
+            throw new NoSuchElementFoundException("El usuario no existe en el sistema");
+        }
     }
 }

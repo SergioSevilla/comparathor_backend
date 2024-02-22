@@ -71,7 +71,7 @@ public class UserController {
 
     // Devuelve información del usuario ID
     @GetMapping("/users/{id}")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
     @SecurityRequirement(name="Bearer Authentication")
     public Usuario getUser(@PathVariable("id") int id) {
 

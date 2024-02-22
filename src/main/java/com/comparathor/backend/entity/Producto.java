@@ -43,6 +43,7 @@ public class Producto {
     private Categoria categoria;
 
     @OneToMany(mappedBy = "producto")
+    @JsonIgnore
     private List<AtributoValor> atributos;
 
     public List<AtributoValor> getAtributos() {
@@ -129,7 +130,7 @@ public class Producto {
         return this.estado;
     }
 
-    @JsonIgnore
+
     public String getFoto() {
         return foto;
     }

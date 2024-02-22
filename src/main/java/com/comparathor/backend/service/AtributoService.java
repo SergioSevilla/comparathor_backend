@@ -78,7 +78,8 @@ public class AtributoService {
             productoOptional = repositoryProducto.findByIdAndDeletedAtNull(id);
         }
         if (productoOptional.isPresent()) {
-            if ((productoOptional.get().getEstado() == 2) ||
+            if ((user.getAuthorities().contains(new SimpleGrantedAuthority("ADMIN"))) ||
+                    (productoOptional.get().getEstado() == 2) ||
                     ((productoOptional.get().getEstado() == 1) && (user.getUsername().equals(productoOptional.get().getObjectUsuario().getEmail()))))
             {
                 List<Categoria> familiaCategorias = getAllFamilyCategories(productoOptional.get().getCategoria(),user);

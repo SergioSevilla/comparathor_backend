@@ -47,7 +47,7 @@ public class SecurityConfig {
                     return configuration;
                 }))
                 .csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(auth -> auth.requestMatchers("api/v1/users/create", "api/v1/users/login", "api/v1/users/welcome", "/swagger-ui/**","/v3/api-docs/**").permitAll()
+                .authorizeHttpRequests(auth -> auth.requestMatchers("api/v1/users/create", "api/v1/users/login", "api/v1/users/welcome","/swagger-ui/**","/v3/api-docs/**").permitAll()
                         .requestMatchers("api/v1/users/**").authenticated()
                         .requestMatchers("api/v1/categories/**").authenticated()
                         .requestMatchers("api/v1/statuses/**").authenticated()

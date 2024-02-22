@@ -55,6 +55,16 @@ public class ProductoController {
         return productoService.addProducto(user,producto,categoriaId);
     }
 
+
+    @GetMapping("/categories/{id}/items")
+    @SecurityRequirement(name="Bearer Authentication")
+    @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
+    public List<Producto>  getProductoByCat(@PathVariable("id") int categoriaId) {
+        UserInfoDetails user = (UserInfoDetails) SecurityContextHolder.getContext().getAuthentication()
+                .getPrincipal();
+        return productoService.getProductoByCat(user, categoriaId);
+    }
+
     @PutMapping("/items/{id}")
     @SecurityRequirement(name="Bearer Authentication")
     @PreAuthorize("hasAnyAuthority('ADMIN','USER')")

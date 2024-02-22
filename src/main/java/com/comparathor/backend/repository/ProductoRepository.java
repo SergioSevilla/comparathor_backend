@@ -1,5 +1,6 @@
 package com.comparathor.backend.repository;
 
+import com.comparathor.backend.entity.Categoria;
 import com.comparathor.backend.entity.Estado;
 import com.comparathor.backend.entity.Producto;
 import com.comparathor.backend.entity.Usuario;
@@ -29,4 +30,11 @@ public interface ProductoRepository extends JpaRepository<Producto, Integer> {
     List<Producto> findByDeletedAtNullAndUsuarioOrEstado(Usuario usuario, Estado estado);
 
     Optional<Producto> findByIdAndDeletedAtNull(int id);
+
+    List<Producto> findByCategoria(Optional<Categoria> byId);
+
+
+    List<Producto> findByUsuarioOrEstadoAndCategoria(Usuario usuario, Estado estado, Optional<Categoria> byId);
+
+    List<Producto> findByUsuarioAndCategoriaOrEstadoAndCategoria(Usuario usuario, Optional<Categoria> byId, Estado estado, Optional<Categoria> byId1);
 }
