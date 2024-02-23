@@ -12,10 +12,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class UserInfoService implements UserDetailsService {
@@ -104,6 +101,18 @@ public class UserInfoService implements UserDetailsService {
         {
             usuarios = repository.findAll();
             usuarios.stream().forEach(usr -> usr.setPassword(null));
+            usuarios.sort(new Comparator<Usuario>() {
+                @Override
+                public int compare(Usuario u1, Usuario u2) {
+                    if (u1.getEmail().equals(user.getUsername())) {
+                        return -1;
+                    } else if (u2.getEmail().equals(user.getUsername())) {
+                        return 1;
+                    } else {
+                        return 0;
+                    }
+                }
+            });
         }
         else
         {
